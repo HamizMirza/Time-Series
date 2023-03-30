@@ -1,0 +1,144 @@
+---
+title: 'Group Lab 5: Regression'
+author: "Hamiz Mirza"
+date: "2023-03-28"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(fpp3)
+library(tsibble)
+library(ggfortify)
+library(dplyr)
+library(tidyr)
+```
+
+1. Get started by converting to daily data. Use index by(Date) and then summarize to get the total Demand for each day and the daily high temperature.
+
+```{r}
+dailydata <- vic_elec %>%
+  index_by(Date) %>%
+  summarize(Total_Demand = sum(Demand), Daily_High = max(Temperature))
+```
+
+2. Make a seasonal plot of Demand (with gg season) to see the annual pattern of electricity use.
+
+```{r}
+gg_season(dailydata, Total_Demand)
+```
+3. Since electricity use depends on heating, cooling, and the length of days, we concentrate only on the months June, July, August (winter in Australia).
+Filter the data to just select those three months and just the year 2013. Make time plots of Demand and daily high temperature.
+
+```{r}
+winterdata <- dailydata %>% filter_index("2013-06-01" ~ "2013-08-31")
+ggplot(winterdata) + 
+  aes(Date,Total_Demand) +
+  geom_line()
+```
+
+```{r}
+ggplot(winterdata) + 
+  aes(Date,Daily_High) +
+  geom_line()
+```
+4. Make a plot showing Demand as a function of daily high temperature. What do you observe?
+
+```{r}
+ggplot(winterdata, aes(x = Daily_High, y = Total_Demand)) +
+  geom_point()
+```
+It is difficult to definitively discuss a relationship without conducting further analysis, however just from looking at the graph it appears that there is some confounding variable causing two seperate sets of data, both of which have a negative relationship. 
+
+5. There are clearly two types of day in this data - days with and without work. Create a new variable that distinguishes the two types of day. Recreate your plot from (4) and color the points according to your new variable. Add regression lines for each group.
+
+```{r}
+winterworkdata <- winterdata %>% mutate(Weekend = if_else(weekdays(Date) %in% c("Saturday", "Sunday"), "Weekend", "Weekday"))
+ggplot(winterworkdata, aes(Daily_High,Total_Demand, color = Weekend)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE)
+```
+6. Create a time series linear model of Demand using high temperature and your workday variable. Check the coefficients. Describe how demand changes with a 1◦C change in temperature. How much does a workday affect Demand?
+
+```{r}
+demandmodel <- winterworkdata %>% 
+  model(TSLM(Total_Demand ~ Daily_High + Weekend))
+report(demandmodel)
+```
+A decrease of 1 degrees Celsius results in an decrease of 3288.3  MW energy used. The weekend consumes significantly less energy, 36515.8 MW less energy compared to weekdays. 
+
+7. Make a plot showing Demand as well as your fitted model. (You’ll need to augment() your model.)
+
+```{r}
+winterworkdataaugment <- augment(demandmodel, newdata = winterworkdata)
+ggplot(winterworkdataaugment, aes(x = Date, y = Total_Demand)) +
+  geom_line() +
+  geom_line(aes(y = .fitted), color = 'red')
+```
+8. Plot the residuals of your model. What do you observe? Check if they are white noise using a Ljung-Box test.
+
+```{r}
+gg_tsresiduals(demandmodel)
+```
+
+The series sst.csv contains weekly sea surface temperatures in four regions of the Southern Pacific ocean, and is an indicator of the weather phenomenon known as El Nino.
+
+```{r}
+seatemp <- read.csv('https://mathstat.slu.edu/~clair/timeseries/data/sst.csv') 
+sea <- seatemp %>%
+  mutate(Date = yearweek(week))
+```
+
+1. Make a time plot of the Nino4 region temperatures and show the linear regression line with time as the predictor variable.
+
+```{r}
+sea4 <- sea %>% 
+  as_tsibble(index = Date) %>%
+  select(Date,Nino4)
+
+ggplot(sea4) +
+  aes(x = Date, y = Nino4) +
+  geom_line() + 
+  geom_smooth(method = "lm")
+```
+2. Fit a linear model for the Nino4 region temperatures with time as the predictor. What does the trend coefficient tell you about ocean temperatures in this part of the ocean?
+
+```{r}
+seamodel <- sea4 %>% model(TSLM(Nino4 ~ trend()))
+report(seamodel)
+```
+3. Fit a linear model and include seasonal dummy variables. How many dummy variables did this require? Plot the fitted values and the data on the same chart.
+
+```{r}
+seamodel2 <- sea4 %>% model(TSLM(Nino4 ~ trend() + season()))
+report(seamodel2)
+
+augment(seamodel2) %>%
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = Nino4, color = 'blue')) +
+  geom_line(aes(y = .fitted, color = 'red'))
+
+glance(seamodel2)
+```
+51 dummy variables are required as we need the number of weeks - 1.
+
+4. Fit a linear model and include Fourier series terms. Minimize cross validation error (CV) to select the best number of terms. Plot the fitted values and the data on the same chart.
+
+```{r}
+sea_fourier <- sea4 %>% model(TSLM(Nino4 ~ trend() + fourier(K = 2)))
+report(sea_fourier)
+
+augment(sea_fourier) %>%
+  ggplot(aes(x = Date)) +
+  geom_line(aes(y = Nino4, color = 'blue')) +
+  geom_line(aes(y = .fitted, color = 'red')) 
+
+glance(sea_fourier)
+```
+
+5. How does your Fourier series model compare to the one with seasonal dummy variables?
+
+The Fourier series model is more accurate when examine the Cross-Validation values compared to the Cross-Validation values of the model which utilized dummy variables. 
