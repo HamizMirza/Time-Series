@@ -138,7 +138,8 @@ augment(sea_fourier) %>%
 
 glance(sea_fourier)
 ```
+K = 2 minimizes the Cross-Validation error. We tested this by utilizing multiple values of K and finding out which one produced the lowest CV error.
 
 5. How does your Fourier series model compare to the one with seasonal dummy variables?
 
-The Fourier series model is more accurate when examine the Cross-Validation values compared to the Cross-Validation values of the model which utilized dummy variables. 
+The Fourier series model is more accurate when examining the Cross-Validation values compared to the Cross-Validation values of the model which utilized dummy variables.
