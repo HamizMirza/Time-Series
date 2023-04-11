@@ -1,0 +1,87 @@
+---
+title: "Group Lab Exponential"
+author: "Hamiz Mirza"
+date: "2023-04-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(forecast)
+library(tsibble)
+library(ggplot2)
+library(ggfortify)
+library(fable)
+```
+
+(a)  Create a vector of 1000 white noise values wt which are iid normal with mean 0 and sd 5.
+
+```{r}
+set.seed(100)
+w <- rnorm(1000, mean = 0, sd = 5)
+y <- rep(0,1000)
+for (tt in 2:1000){
+  y[tt] <- y[tt-1] + w[tt-1]
+}
+
+rw <- tsibble(tt = 1:1000, y, index = tt)
+rw
+autoplot(rw)
+acf(rw)
+
+rw %>% model(NAIVE(y)) %>% report()
+
+
+```
+
+2. Exponential smoothing state space model
+
+(a)  With the same white noise values wt you created in question 1, and smoothing parameter
+
+α = 0.5, use the state equation
+
+lt = lt−1 + α*wt−1
+
+to create a vector of levels lt.
+
+```{r}
+set.seed(101)
+w <- rnorm(1000, mean = 0, sd = 5)
+l_t <- rep(0,1000)
+for (tt in 2:1000){
+  l_t[tt] <- l_t[tt-1] + 0.5*w[tt-1]
+}
+
+ew <- tsibble(tt = 1:1000, l_t, index = tt)
+ew
+autoplot(ew)
+
+y_t <- rep(0,1000)
+for(tt in 1:999){
+  y_t[tt+1] <- y_t[tt] + w[tt]
+}
+rw2 <- tsibble(tt = 1:1000, y_t, index = tt)
+autoplot(rw2)
+
+```
+
+(b)  Use the observation equation yt+1 = lt + wt to create a time series.
+
+(c)  Make your time series yt into a tsibble and plot it as well as its autocorrelogram.
+
+(d)  Fit an ETS model, and check that the fitted values of the smoothing parameter α and
+
+variance σ2 are close to the correct values.
+
+3. Repeat question 2 with α = 0.01. Compare the plots for all three questions.
+
+
+
+
+
+
+
+
