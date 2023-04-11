@@ -34,7 +34,6 @@ acf(rw)
 
 rw %>% model(NAIVE(y)) %>% report()
 
-
 ```
 
 2. Exponential smoothing state space model
@@ -56,12 +55,11 @@ for (tt in 2:1000){
 }
 
 ew <- tsibble(tt = 1:1000, l_t, index = tt)
-ew
 autoplot(ew)
 
 y_t <- rep(0,1000)
 for(tt in 1:999){
-  y_t[tt+1] <- y_t[tt] + w[tt]
+  y_t[tt+1] <- l_t[tt] + w[tt]
 }
 rw2 <- tsibble(tt = 1:1000, y_t, index = tt)
 autoplot(rw2)
