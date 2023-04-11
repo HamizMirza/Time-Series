@@ -79,7 +79,29 @@ variance σ2 are close to the correct values.
 3. Repeat question 2 with α = 0.01. Compare the plots for all three questions.
 
 
+4. Holt’s exponential smoothing with linear trend
 
+(a)  With the same white noise values wt you created in question 1, and smoothing parameters
+
+α = 0.5 and β = 0.5, use the state equations
+
+yt =lt−1 +bt−1 +wt
+
+lt =lt−1 +bt−1 +αwt
+
+bt = bt−1 + αβwt
+
+to create a simulated time series yt.
+
+(b)  Make your time series yt into a tsibble and plot it.
+
+(c)  Fit an ETS model, and check that the fitted values of the smoothing parameters αˆ, βˆ,and variance σˆ2 are close to the correct values.
+
+5. Seasonal, multiplicative, and damping ETS models
+
+(a)  Using the AirPassengers data, fit a simple exponential smoothing model ETS(A,N,N), make a 4-year forecast, and plot the forecast and data on the same chart.
+
+(b)  Repeat this for other ETS models, including Holt-Winters ETS(A,A,A), multiplicative Holt-Winters ETS(M,A,M), and investigate the effect of damping on the trend term.
 
 
 
