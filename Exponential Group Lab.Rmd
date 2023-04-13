@@ -38,13 +38,11 @@ rw %>% model(NAIVE(y)) %>% report()
 
 2. Exponential smoothing state space model
 
-(a)  With the same white noise values wt you created in question 1, and smoothing parameter
+(a)  With the same white noise values wt you created in question 1, and smoothing parameter α = 0.5, use the state equation lt = lt−1 + α*wt−1 to create a vector of levels lt.
+(b)  Use the observation equation yt+1 = lt + wt to create a time series.
+(c)  Make your time series yt into a tsibble and plot it as well as its autocorrelogram.
 
-α = 0.5, use the state equation
 
-lt = lt−1 + α*wt−1
-
-to create a vector of levels lt.
 
 ```{r}
 set.seed(101)
@@ -66,13 +64,13 @@ autoplot(rw2)
 
 ```
 
-(b)  Use the observation equation yt+1 = lt + wt to create a time series.
 
-(c)  Make your time series yt into a tsibble and plot it as well as its autocorrelogram.
+(d)  Fit an ETS model, and check that the fitted values of the smoothing parameter α and variance σ2 are close to the correct values.
 
-(d)  Fit an ETS model, and check that the fitted values of the smoothing parameter α and
-
-variance σ2 are close to the correct values.
+```{r}
+fit <- rw2 %>% model(ETS(y_t ~ error("A")))
+report(fit)
+```
 
 3. Repeat question 2 with α = 0.01. Compare the plots for all three questions.
 
