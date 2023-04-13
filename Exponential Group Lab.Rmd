@@ -45,15 +45,10 @@ rw %>% model(NAIVE(y)) %>% report()
 
 
 ```{r}
-set.seed(101)
-w <- rnorm(1000, mean = 0, sd = 5)
 l_t <- rep(0,1000)
 for (tt in 2:1000){
   l_t[tt] <- l_t[tt-1] + 0.5*w[tt-1]
 }
-
-ew <- tsibble(tt = 1:1000, l_t, index = tt)
-autoplot(ew)
 
 y_t <- rep(0,1000)
 for(tt in 1:999){
@@ -61,7 +56,6 @@ for(tt in 1:999){
 }
 rw2 <- tsibble(tt = 1:1000, y_t, index = tt)
 autoplot(rw2)
-
 ```
 
 
@@ -73,6 +67,25 @@ report(fit)
 ```
 
 3. Repeat question 2 with α = 0.01. Compare the plots for all three questions.
+
+
+```{r}
+set.seed(101)
+l_t_2 <- rep(0,1000)
+for (tt in 2:1000){
+  l_t_2[tt] <- l_t_2[tt-1] + 0.1*w[tt-1]
+}
+
+y_t_2 <- rep(0,1000)
+for(tt in 1:999){
+  y_t_2[tt+1] <- l_t_2[tt] + w[tt]
+}
+rw3 <- tsibble(tt = 1:1000, y_t_2, index = tt)
+autoplot(rw2)
+
+fit2 <- rw3 %>% model(ETS(y_t_2 ~ error("A")))
+report(fit2)
+```
 
 
 4. Holt’s exponential smoothing with linear trend
@@ -88,6 +101,11 @@ lt =lt−1 +bt−1 +αwt
 bt = bt−1 + αβwt
 
 to create a simulated time series yt.
+
+```{r}
+
+
+```
 
 (b)  Make your time series yt into a tsibble and plot it.
 
